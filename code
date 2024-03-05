@@ -1,0 +1,134 @@
+package javaprogramming;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class Quiz {
+    private List<Question> questions;
+    private int currentQuestionIndex;
+    private int score;
+    private Timer timer;
+
+    public Quiz() {
+        questions = new ArrayList<>();
+        currentQuestionIndex = 0;
+        score = 0;
+        timer = new Timer();
+    }
+
+    public void addQuestion(Question question) {
+        questions.add(question);
+    }
+
+    public void startQuiz() {
+        System.out.println("Welcome to the Quiz!\n");
+
+        for (int i = 0; i < questions.size(); i++) {
+            Question currentQuestion = questions.get(i);
+            System.out.println("Question " + (i + 1) + ": " + currentQuestion.getQuestion());
+            for (int j = 0; j < currentQuestion.getOptions().size(); j++) {
+                System.out.println((char) ('A' + j) + ") " + currentQuestion.getOptions().get(j));
+            }
+
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    System.out.println("\nTime's up! Moving to the next question.");
+                    nextQuestion();
+                }
+            };
+            timer.schedule(task, currentQuestion.getTimeLimit() * 1000);
+
+            Scanner scanner = new Scanner(System.in);
+            System.out.print("Enter your choice (A/B/C/D): ");
+            char userChoice = Character.toUpperCase(scanner.next().charAt(0));
+
+            task.cancel();
+
+            if (userChoice == currentQuestion.getCorrectAnswer()) {
+                score++;
+                System.out.println("Correct!\n");
+            } else {
+                System.out.println("Incorrect! The correct answer is " + currentQuestion.getCorrectAnswer() + ".\n");
+            }
+        }
+
+        displayResult();
+    }
+
+    public void nextQuestion() {
+        if (currentQuestionIndex < questions.size() - 1) {
+            currentQuestionIndex++;
+        } else {
+            timer.cancel();
+            displayResult();
+        }
+    }
+
+    public void displayResult() {
+        System.out.println("Quiz ended!");
+        System.out.println("Your Score: " + score + "/" + questions.size());
+
+        System.out.println("\nSummary of Answers:");
+        for (int i = 0; i < questions.size(); i++) {
+            Question question = questions.get(i);
+            System.out.println("Question " + (i + 1) + ": " + (question.isAnsweredCorrectly() ? "Correct" : "Incorrect"));
+        }
+    }
+
+    public static void main(String[] args) {
+        Quiz quiz = new Quiz();
+
+        Question q1 = new Question("What is the capital of France?", List.of("A) London", "B) Paris", "C) Rome", "D) Berlin"), 'B', 10);
+        Question q2 = new Question("What is 2 + 2?", List.of("A) 3", "B) 4", "C) 5", "D) 6"), 'B', 5);
+        Question q3 = new Question("What is the largest planet in our solar system?", List.of("A) Earth", "B) Jupiter", "C) Saturn", "D) Mars"), 'B', 15);
+
+        quiz.addQuestion(q1);
+        quiz.addQuestion(q2);
+        quiz.addQuestion(q3);
+
+        quiz.startQuiz();
+    }
+}
+
+class Question {
+    private String question;
+    private List<String> options;
+    private char correctAnswer;
+    private int timeLimit;
+    private boolean answeredCorrectly;
+
+    public Question(String question, List<String> options, char correctAnswer, int timeLimit) {
+        this.question = question;
+        this.options = options;
+        this.correctAnswer = correctAnswer;
+        this.timeLimit = timeLimit;
+        this.answeredCorrectly = false;
+    }
+
+    public String getQuestion() {
+        return question;
+    }
+
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public char getCorrectAnswer() {
+        return correctAnswer;
+    }
+
+    public int getTimeLimit() {
+        return timeLimit;
+    }
+
+    public boolean isAnsweredCorrectly() {
+        return answeredCorrectly;
+    }
+
+    public void setAnsweredCorrectly(boolean answeredCorrectly) {
+        this.answeredCorrectly = answeredCorrectly;
+    }
+}
